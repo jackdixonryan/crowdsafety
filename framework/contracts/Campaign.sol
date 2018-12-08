@@ -58,7 +58,7 @@ contract Campaign {
     }
     
     // allows a funder to approve a request.
-    function approvalRequest(uint index) public {
+    function approveRequest(uint index) public {
         Request storage request = requests[index];
         
         // requires 1) the individual to be a funder, & 2) the individual not yet have voted on this proposal.
@@ -71,5 +71,17 @@ contract Campaign {
         // increments the approval count on this agenda item.
         request.approvalCount++;
     }
-}
+    
+    function finalizeRequest(uint index) public restricted {
+        // requires that the request at index param is not complete.
+        Request storage request = requests[index];
+        require(!request.complete);
+        // require that the approval count on the request constitute at least 50% 
+        // of the total population of approvers.
+        require(request.approvalCount > (fundersCount / 2));
 
+        // sends the recipient money and marks the transaction as true. 
+        request.recipient.transfer(request.value);
+        request.complete = true;
+    }
+}
